@@ -23,6 +23,15 @@ SwachhSaathi AI is a complete waste management workflow for citizens and municip
 2. Start MongoDB locally.
 3. Run the API: `uvicorn main:app --reload`
 
+## Run the React frontend
+1. Open a new terminal in `frontend` folder.
+2. Install dependencies once: `npm install`
+3. Start frontend: `npm run dev`
+4. Open `http://localhost:5173`
+
+If backend runs on another port/host, set environment variable before running frontend:
+- PowerShell: `$env:VITE_API_BASE_URL="http://127.0.0.1:8000"`
+
 ## MongoDB backup and restore
 The app already uses the `swachh_saathi` database by default through `MONGO_DB_NAME`.
 
