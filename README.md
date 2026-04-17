@@ -23,6 +23,21 @@ SwachhSaathi AI is a complete waste management workflow for citizens and municip
 2. Start MongoDB locally.
 3. Run the API: `uvicorn main:app --reload`
 
+## MongoDB backup and restore
+The app already uses the `swachh_saathi` database by default through `MONGO_DB_NAME`.
+
+To export your local database for teammates:
+```powershell
+mongodump --uri="mongodb://localhost:27017/swachh_saathi" --out="D:\mongo_backup"
+```
+
+To restore that dump on another machine:
+```powershell
+mongorestore --uri="mongodb://localhost:27017" --drop --db="swachh_saathi" "D:\mongo_backup\swachh_saathi"
+```
+
+If your MongoDB host, port, or database name is different, set `MONGO_URI` and `MONGO_DB_NAME` before starting the backend.
+
 ## Run the user portal and dashboard
 1. Start the backend first.
 2. Run: `streamlit run dashboard/streamlit_app.py`
