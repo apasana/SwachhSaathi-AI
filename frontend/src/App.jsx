@@ -146,6 +146,7 @@ function PortalSwitch() {
 function CitizenPanel() {
   const [form, setForm] = useState(initialFormState);
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [complaints, setComplaints] = useState([]);
@@ -171,6 +172,19 @@ function CitizenPanel() {
   useEffect(() => {
     loadComplaints();
   }, []);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl('');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imageFile]);
 
   const citizenStats = useMemo(() => {
     const resolved = complaints.filter((item) => item.status === 'resolved').length;
@@ -377,6 +391,12 @@ function CitizenPanel() {
                 setImageFile(file);
               }}
             />
+            {imagePreviewUrl ? (
+              <div className="upload-preview-media">
+                <p>Image Preview</p>
+                <img src={imagePreviewUrl} alt="Selected waste" />
+              </div>
+            ) : null}
             <button type="submit" disabled={submitting}>
               {submitting ? 'Submitting...' : 'Submit Complaint'}
             </button>
@@ -414,6 +434,7 @@ function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [adminImageFile, setAdminImageFile] = useState(null);
+  const [adminImagePreviewUrl, setAdminImagePreviewUrl] = useState('');
   const [adminClassifying, setAdminClassifying] = useState(false);
   const [adminClassifyResult, setAdminClassifyResult] = useState(null);
   const { activeSection, registerSection, scrollToSection, setActiveSection } = useSectionNavigator('overview');
@@ -434,6 +455,19 @@ function AdminPanel() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (!adminImageFile) {
+      setAdminImagePreviewUrl('');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(adminImageFile);
+    setAdminImagePreviewUrl(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [adminImageFile]);
 
   const adminCards = useMemo(() => {
     if (!summary?.metrics) {
@@ -495,11 +529,13 @@ function AdminPanel() {
     }
 
     setErrorMessage('');
+    setAdminClassifyResult(null);
     setAdminClassifying(true);
     try {
       const result = await classifyImage(adminImageFile);
       setAdminClassifyResult(result);
     } catch (error) {
+      setAdminClassifyResult(null);
       setErrorMessage(formatApiError(error));
     } finally {
       setAdminClassifying(false);
@@ -622,6 +658,7 @@ function AdminPanel() {
               <h3>Selected File</h3>
               <p>{adminImageFile ? adminImageFile.name : 'No image selected yet.'}</p>
             </div>
+            {adminImagePreviewUrl ? <img src={adminImagePreviewUrl} alt="Selected waste" /> : null}
           </div>
 
           <form className="report-form" onSubmit={(event) => event.preventDefault()}>
@@ -631,6 +668,8 @@ function AdminPanel() {
               onChange={(event) => {
                 const file = event.target.files?.[0] || null;
                 setAdminImageFile(file);
+                setAdminClassifyResult(null);
+                setErrorMessage('');
               }}
             />
             <button type="button" onClick={handleAdminClassify} disabled={adminClassifying}>
@@ -641,6 +680,7 @@ function AdminPanel() {
           {adminClassifyResult ? (
             <article className="panel-list result-panel">
               <h3>AI Classification</h3>
+              <p>File: {adminClassifyResult.filename || adminImageFile?.name || 'Unknown'}</p>
               <p>Type: {adminClassifyResult.waste_type}</p>
               <p>Confidence: {Number(adminClassifyResult.confidence || 0).toFixed(2)}</p>
               <p>Source: {adminClassifyResult.source}</p>
